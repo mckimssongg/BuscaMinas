@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -29,17 +31,17 @@ namespace BuscaMinas
             tableLayoutPanel1.ColumnCount = COLS;
             tableLayoutPanel1.RowCount = ROWS;
             tableLayoutPanel1.AutoSize = true;
-            // Establecer la propiedad FormBorderStyle
+            //Establecer la propiedad FormBorderStyle
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
-            // Establecer la propiedad MaximizeBox
+            //Establecer la propiedad MaximizeBox
             this.MaximizeBox = false;
 
-
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
             // Generar botones y agregarlos al TableLayoutPanel
-            for (int row = 0; row < ROWS; row++)
-            {
-                for (int col = 0; col < COLS; col++)
-                {
+            Enumerable.Range(0, ROWS).ToList().ForEach(row => {
+                Enumerable.Range(0, COLS).ToList().ForEach(col => {
+                    Console.WriteLine(row.ToString() + "  " + col.ToString());
                     Button button = new Button();
                     button.Height = 30; // Cambia la altura del botón a 30 píxeles
                     button.Width = 30;  // Cambia el ancho del botón a 30 píxeles
@@ -47,10 +49,16 @@ namespace BuscaMinas
                     button.Margin = new Padding(0);
                     button.Tag = new Tuple<int, int>(row, col);
                     button.Click += Button_Click;
-                    tableLayoutPanel1.Controls.Add(button, col, row);
                     buttonField[row, col] = button;
-                }
-            }
+                });
+            });
+
+            tableLayoutPanel1.Controls.AddRange(buttonField.Cast<Control>().ToArray());
+
+            Console.WriteLine("FIN");
+            TimeSpan elapsedTime = stopwatch.Elapsed;
+            double seconds = elapsedTime.TotalSeconds;
+            Console.WriteLine("Tiempo transcurrido: " + seconds.ToString() + " segundos");
         }
 
         private void Button_Click(object sender, EventArgs e)
