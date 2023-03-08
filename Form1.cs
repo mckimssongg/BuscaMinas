@@ -100,6 +100,11 @@ namespace BuscaMinas
                 int mines = adjacentMines[row, col];
                 button.Text = mines.ToString();
 
+                if (mines == 0)
+                {
+                    ShowAdjacentEmptyCells(row, col);
+                }
+
             }
             if (CheckWin())
             {
@@ -166,6 +171,30 @@ namespace BuscaMinas
                         buttonField[row, col].Text = "X";
                     }
                 }
+            }
+        }
+        private void ShowAdjacentEmptyCells(int row, int col)
+        {
+            // Verificar si la celda actual es un valor 0
+            if (adjacentMines[row, col] == 0)
+            {
+                // Mostrar la celda actual
+                buttonField[row, col].Text = adjacentMines[row, col].ToString();
+
+                // Llamar a ShowAdjacentEmptyCells en todas las celdas adyacentes
+                if (row > 0 && buttonField[row - 1, col].Text == "")
+                    ShowAdjacentEmptyCells(row - 1, col);
+                if (row < ROWS - 1 && buttonField[row + 1, col].Text == "")
+                    ShowAdjacentEmptyCells(row + 1, col);
+                if (col > 0 && buttonField[row, col - 1].Text == "")
+                    ShowAdjacentEmptyCells(row, col - 1);
+                if (col < COLS - 1 && buttonField[row, col + 1].Text == "")
+                    ShowAdjacentEmptyCells(row, col + 1);
+            }
+            else
+            {
+                // Mostrar el valor de la celda
+                buttonField[row, col].Text = adjacentMines[row, col].ToString();
             }
         }
     }
