@@ -5,6 +5,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,7 @@ namespace BuscaMinas
         private readonly bool[,] mineField = new bool[ROWS, COLS];
         private readonly Button[,] buttonField = new Button[ROWS, COLS];
         private readonly int[,] adjacentMines = new int[ROWS, COLS];
+        
         public Form1()
         {
             Console.WriteLine(mineField);
@@ -32,9 +34,10 @@ namespace BuscaMinas
             tableLayoutPanel1.RowCount = ROWS;
             tableLayoutPanel1.AutoSize = true;
             //Establecer la propiedad FormBorderStyle
-            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            //this.FormBorderStyle = FormBorderStyle.FixedSingle;
             //Establecer la propiedad MaximizeBox
-            this.MaximizeBox = false;
+            this.Size = new Size(820, 500);
+            //this.MaximizeBox = false;
 
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -43,17 +46,20 @@ namespace BuscaMinas
                 Enumerable.Range(0, COLS).ToList().ForEach(col => {
                     Console.WriteLine(row.ToString() + "  " + col.ToString());
                     Button button = new Button();
-                    button.Height = 30; // Cambia la altura del botón a 30 píxeles
-                    button.Width = 30;  // Cambia el ancho del botón a 30 píxeles
+                    button.Height = 40; // Cambia la altura del botón a 30 píxeles
+                    button.Width = 40;  // Cambia el ancho del botón a 30 píxeles
                     button.Dock = DockStyle.Fill;
+                    button.Font = new Font("Arial", 20, FontStyle.Bold);
                     button.Margin = new Padding(0);
                     button.Tag = new Tuple<int, int>(row, col);
-                    button.Click += Button_Click;
+                    button.MouseUp += button_MouseButtons;
                     buttonField[row, col] = button;
                 });
             });
 
             tableLayoutPanel1.Controls.AddRange(buttonField.Cast<Control>().ToArray());
+
+            ResizeLayout();
 
             Console.WriteLine("FIN");
             TimeSpan elapsedTime = stopwatch.Elapsed;
@@ -61,7 +67,33 @@ namespace BuscaMinas
             Console.WriteLine("Tiempo transcurrido: " + seconds.ToString() + " segundos");
         }
 
-        private void Button_Click(object sender, EventArgs e)
+        private void button_MouseButtons(object sender, EventArgs e)
+        {
+            // tomar el click izquierdo
+            MouseEventArgs me = (MouseEventArgs)e;
+            Console.WriteLine(me.Button.ToString());
+            if (me.Button == MouseButtons.Left)
+            {
+                Button_Click_Left(sender, e);
+            }
+            // tomar el click derecho
+            Console.WriteLine(me.Button.ToString());
+            if (me.Button == MouseButtons.Right)
+            {
+                Button button = (Button)sender;
+                Tuple<int, int> position = (Tuple<int, int>)button.Tag;
+                int row = position.Item1;
+                int col = position.Item2;
+
+                // hacer click en la celda
+                if (row >= 0 && row < ROWS && col >= 0 && col < COLS)
+                {
+                    buttonField[row, col].Text = "🚩";
+                    buttonField[row, col].ForeColor = Color.Green;
+                }
+            }
+        }
+        private void Button_Click_Left(object sender, EventArgs e)
         {
             Button button = (Button)sender;
             Tuple<int, int> position = (Tuple<int, int>)button.Tag;
@@ -91,13 +123,14 @@ namespace BuscaMinas
                 isFirstClick = false;
 
                 // De momento vemos las minas al inicio solo para testear que todo este correcto 
-                ShowMines();
+                //ShowMines();
 
             }
             //Comprobar si cae en una mina
             if (mineField[row, col])
             {
-                button.Text = "X";
+                button.Text = "💣";
+                button.ForeColor = Color.Black;
                 button.BackColor = Color.Red;
                 MessageBox.Show("Juego perdido");
                 ShowMines();
@@ -107,6 +140,7 @@ namespace BuscaMinas
                 // Mostrar el número de minas adyacentes
                 int mines = adjacentMines[row, col];
                 button.Text = mines.ToString();
+                button.ForeColor = Color.Black;
 
                 if (mines == 0)
                 {
@@ -176,7 +210,8 @@ namespace BuscaMinas
                 {
                     if (mineField[row, col])
                     {
-                        buttonField[row, col].Text = "X";
+                        buttonField[row, col].Text = "💣";
+                        buttonField[row, col].ForeColor = Color.Black;
                     }
                 }
             }
@@ -204,6 +239,21 @@ namespace BuscaMinas
                 // Mostrar el valor de la celda
                 buttonField[row, col].Text = adjacentMines[row, col].ToString();
             }
+        }
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            ResizeLayout();
+        }
+        private void ResizeLayout()
+        {
+            // Calcula la posición X para centrar el TableLayoutPanel
+            int centerX = (this.ClientSize.Width - tableLayoutPanel1.Width) / 2;
+
+            // Calcula la posición Y para centrar el TableLayoutPanel
+            int centerY = (this.ClientSize.Height - tableLayoutPanel1.Height) / 2;
+
+            // Establece la posición del TableLayoutPanel
+            tableLayoutPanel1.Location = new Point(centerX, centerY);
         }
     }
 }
