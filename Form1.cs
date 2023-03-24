@@ -18,17 +18,53 @@ namespace BuscaMinas
         private const int ROWS = 10;
         private const int COLS = 10;
         private const int MINES = 15;
+        private const int limitFlags = MINES + 3;
         private bool isFirstClick = true;
+        private Label tituloForm = new Label();
 
         private readonly bool[,] mineField = new bool[ROWS, COLS];
         private readonly Button[,] buttonField = new Button[ROWS, COLS];
         private readonly int[,] adjacentMines = new int[ROWS, COLS];
+        private readonly bool[,] flagsField = new bool[ROWS, COLS];
         
         public Form1()
         {
-            Console.WriteLine(mineField);
             InitializeComponent();
+        }
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            // ACA TOMAREMOS EL NIVEL DE DIFICULTAD CON UN FORM
+            // Instanciamos una el form de la dificultad 
+            tituloForm.Text = "Selecciona el nivel de dificultad";
+            tituloForm.Font = new Font("Arial", 20, FontStyle.Bold);
+            tituloForm.Width = 432;
+            tituloForm.Height = 40;
+            int centerX = (this.ClientSize.Width - tituloForm.Width) / 2;
+            tituloForm.Location = new Point(centerX, 0);
+            this.Controls.Add(tituloForm);
 
+            for (int i = 0; i < 3; i++)
+            {
+                int level = i + 1;
+                Button button_nivel = new Button();
+                button_nivel.Tag = level;
+                button_nivel.Height = 40;
+                button_nivel.Width = 150;
+                button_nivel.Text = "Nivel " + level.ToString();
+                button_nivel.Font = new Font("Arial", 20, FontStyle.Bold);
+                button_nivel.Margin = new Padding(0);
+                int centerXButtonLevels = (this.ClientSize.Width - button_nivel.Width) / 2;
+                int centerYButtonLevels  = level * button_nivel.Height;
+                button_nivel.Location = new Point(centerXButtonLevels, centerYButtonLevels);
+                this.Controls.Add(button_nivel);
+
+            }
+
+            //InitGameLayoutPanel(0,0,0);
+        }
+
+        private void InitGameLayoutPanel(int rows, int cols, int mines)
+        {
             // Configurar TableLayoutPanel
             tableLayoutPanel1.ColumnCount = COLS;
             tableLayoutPanel1.RowCount = ROWS;
@@ -39,8 +75,8 @@ namespace BuscaMinas
             this.Size = new Size(820, 500);
             //this.MaximizeBox = false;
 
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
+            //Stopwatch stopwatch = new Stopwatch();
+            //stopwatch.Start();
             // Generar botones y agregarlos al TableLayoutPanel
             Enumerable.Range(0, ROWS).ToList().ForEach(row => {
                 Enumerable.Range(0, COLS).ToList().ForEach(col => {
@@ -61,10 +97,10 @@ namespace BuscaMinas
 
             ResizeLayout();
 
-            Console.WriteLine("FIN");
-            TimeSpan elapsedTime = stopwatch.Elapsed;
-            double seconds = elapsedTime.TotalSeconds;
-            Console.WriteLine("Tiempo transcurrido: " + seconds.ToString() + " segundos");
+            //Console.WriteLine("FIN");
+            //TimeSpan elapsedTime = stopwatch.Elapsed;
+            //double seconds = elapsedTime.TotalSeconds;
+            //Console.WriteLine("Tiempo transcurrido: " + seconds.ToString() + " segundos");
         }
 
         private void button_MouseButtons(object sender, EventArgs e)
@@ -72,25 +108,36 @@ namespace BuscaMinas
             // tomar el click izquierdo
             MouseEventArgs me = (MouseEventArgs)e;
             Console.WriteLine(me.Button.ToString());
+
             if (me.Button == MouseButtons.Left)
             {
                 Button_Click_Left(sender, e);
             }
+
             // tomar el click derecho
-            Console.WriteLine(me.Button.ToString());
             if (me.Button == MouseButtons.Right)
             {
-                Button button = (Button)sender;
-                Tuple<int, int> position = (Tuple<int, int>)button.Tag;
-                int row = position.Item1;
-                int col = position.Item2;
-
-                // hacer click en la celda
-                if (row >= 0 && row < ROWS && col >= 0 && col < COLS)
+                // si no es el primer click
+                if (isFirstClick)
                 {
-                    buttonField[row, col].Text = "🚩";
-                    buttonField[row, col].ForeColor = Color.Green;
+                    // si es el primer click
+                    MessageBox.Show("Para iniciar el juego debes de\n hacer click izquierdo en un campo");
                 }
+                else
+                {
+                    Button button = (Button)sender;
+                    Tuple<int, int> position = (Tuple<int, int>)button.Tag;
+                    int row = position.Item1;
+                    int col = position.Item2;
+
+                    // hacer click en la celda
+                    if (row >= 0 && row < ROWS && col >= 0 && col < COLS)
+                    {
+                        buttonField[row, col].Text = "🚩";
+                        buttonField[row, col].ForeColor = Color.Green;
+                    }
+                }
+                
             }
         }
         private void Button_Click_Left(object sender, EventArgs e)
@@ -254,6 +301,10 @@ namespace BuscaMinas
 
             // Establece la posición del TableLayoutPanel
             tableLayoutPanel1.Location = new Point(centerX, centerY);
+
+            int centerXtitulo = (this.ClientSize.Width - this.tituloForm.Width) / 2;
+            tituloForm.Location = new Point(centerXtitulo, 0);
+
         }
     }
 }
