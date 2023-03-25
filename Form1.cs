@@ -6,27 +6,36 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Forms.VisualStyles;
 
 namespace BuscaMinas
 {
     public partial class Form1 : Form
     {
-        private const int ROWS = 10;
-        private const int COLS = 10;
-        private const int MINES = 15;
-        private const int limitFlags = MINES + 3;
+        private int ROWS;
+        private int COLS;
+        private int MINES;
         private bool isFirstClick = true;
         private Label tituloForm = new Label();
+        private int limitFlags;
+        private int minesHide = 0;
 
-        private readonly bool[,] mineField = new bool[ROWS, COLS];
-        private readonly Button[,] buttonField = new Button[ROWS, COLS];
-        private readonly int[,] adjacentMines = new int[ROWS, COLS];
-        private readonly bool[,] flagsField = new bool[ROWS, COLS];
-        
+        private bool[,] mineField;
+        private Button[,] buttonField;
+        private int[,] adjacentMines;
+        private bool[,] flagsField;
+        private List<Button> buttons_nivels = new List<Button>();
+
+        //private  bool[,] mineField = new bool[ROWS, COLS];
+        //private Button[,] buttonField = new Button[ROWS, COLS];
+        //private  int[,] adjacentMines = new int[ROWS, COLS];
+        //private  bool[,] flagsField = new bool[ROWS, COLS];
+
         public Form1()
         {
             InitializeComponent();
@@ -57,11 +66,10 @@ namespace BuscaMinas
                 int centerYButtonLevels  = level * button_nivel.Height;
                 button_nivel.Location = new Point(centerXButtonLevels, centerYButtonLevels);
                 button_nivel.Click += button_nivel_Click;
+                buttons_nivels.Add(button_nivel);
                 this.Controls.Add(button_nivel);
-                
-
             }
-            
+
             //InitGameLayoutPanel(0,0,0);
         }
 
@@ -75,27 +83,36 @@ namespace BuscaMinas
                 case 1:
                     InitGameLayoutPanel
                         (
-                             10, 10,8
+                             10, 10,15
                         );
                     break;
 
                 case 2:
                     InitGameLayoutPanel
                         (
-                             20, 20, 10
+                             12, 12, 10
                         );
                     break;
                 case 3:
                     InitGameLayoutPanel
                          (
-                              25, 25, 15
+                              14, 14, 12
                          );
                     break;
             }
         }
 
-            private void InitGameLayoutPanel(int rows, int cols, int mines)
+        private void InitGameLayoutPanel(int rows, int cols, int mines)
         {
+            this.COLS = cols;
+            this.ROWS = rows;
+            this.MINES = mines;
+            this.limitFlags = mines + 3;
+            this.mineField = new bool[ROWS, COLS];
+            this.buttonField = new Button[ROWS, COLS];
+            this.adjacentMines = new int[ROWS, COLS];
+            this.flagsField = new bool[ROWS, COLS];
+
             // Configurar TableLayoutPanel
             tableLayoutPanel1.ColumnCount = COLS;
             tableLayoutPanel1.RowCount = ROWS;
@@ -111,7 +128,7 @@ namespace BuscaMinas
             // Generar botones y agregarlos al TableLayoutPanel
             Enumerable.Range(0, ROWS).ToList().ForEach(row => {
                 Enumerable.Range(0, COLS).ToList().ForEach(col => {
-                    Console.WriteLine(row.ToString() + "  " + col.ToString());
+                    //Console.WriteLine(row.ToString() + "  " + col.ToString());
                     Button button = new Button();
                     button.Height = 40; // Cambia la altura del botón a 30 píxeles
                     button.Width = 40;  // Cambia el ancho del botón a 30 píxeles
@@ -133,6 +150,10 @@ namespace BuscaMinas
             //double seconds = elapsedTime.TotalSeconds;
             //Console.WriteLine("Tiempo transcurrido: " + seconds.ToString() + " segundos");
             tituloForm.Hide();
+            foreach (Button btn_level in buttons_nivels)
+            {
+                btn_level.Visible = false;
+            }
         }
 
         private void button_MouseButtons(object sender, EventArgs e)
@@ -149,6 +170,43 @@ namespace BuscaMinas
             // tomar el click derecho
             if (me.Button == MouseButtons.Right)
             {
+                Button_Click_Right(sender, e);
+            }
+        }
+        private void Button_Click_Right(object sender, EventArgs e)
+        {
+            ////DEBUG DE CELDAS
+            //for (int row = 0; row < ROWS; row++)
+            //{
+            //    for (int col = 0; col < COLS; col++)
+            //    {
+            //        Console.Write(adjacentMines[row, col] + " ");
+            //    }
+            //    Console.WriteLine();
+            //}
+
+            int totalFlags = flagsField.Cast<bool>().Count(x => x);
+
+            Button button = (Button)sender;
+            Tuple<int, int> position = (Tuple<int, int>)button.Tag;
+            int row = position.Item1;
+            int col = position.Item2;
+
+            if (totalFlags >= limitFlags)
+            {
+                if (flagsField[row, col])
+                {
+                    flagsField[row, col] = false;
+                    buttonField[row, col].Text = "";
+                    buttonField[row, col].ForeColor = Color.Black;
+                }
+                else
+                {
+                    MessageBox.Show("Has alcanzado el límite de banderas");
+                }
+            }
+            else
+            {
                 // si no es el primer click
                 if (isFirstClick)
                 {
@@ -157,21 +215,65 @@ namespace BuscaMinas
                 }
                 else
                 {
-                    Button button = (Button)sender;
-                    Tuple<int, int> position = (Tuple<int, int>)button.Tag;
-                    int row = position.Item1;
-                    int col = position.Item2;
-
                     // hacer click en la celda
                     if (row >= 0 && row < ROWS && col >= 0 && col < COLS)
                     {
-                        buttonField[row, col].Text = "🚩";
-                        buttonField[row, col].ForeColor = Color.Green;
+                        if (flagsField[row, col])
+                        {
+                            flagsField[row, col] = false;
+                            buttonField[row, col].Text = "";
+                            buttonField[row, col].ForeColor = Color.Black;
+                        }
+                        else if (mineField[row, col] )
+                        {
+                            minesHide += 1;
+                            buttonField[row, col].Text = "🚩";
+                            flagsField[row, col] = true;
+                            buttonField[row, col].ForeColor = Color.Green;
+                        }
+                        else if (buttonField[row, col].Text == "") // Verificar que la celda no tenga algo ya printeado
+                        {
+                            // Si la celda no tiene número, bomba, permitir colocar la bandera
+                            buttonField[row, col].Text = "🚩";
+                            flagsField[row, col] = true;
+                            buttonField[row, col].ForeColor = Color.Green;
+                        }
+
+                        if (minesHide >= MINES)
+                        {
+                            MessageBox.Show("Juego ganado");
+                            WinGame();
+                            blockedGame();
+                        }
                     }
                 }
-                
             }
         }
+
+        private void blockedGame()
+        {
+            for (int row = 0; row < ROWS; row++)
+            {
+                for (int col = 0; col < COLS; col++)
+                {
+                    buttonField[row, col].Enabled = true;
+                }
+            }
+        }
+        private void WinGame()
+        {
+            for (int row = 0; row < ROWS; row++)
+            {
+                for (int col = 0; col < COLS; col++)
+                {
+                    if (!mineField[row, col])
+                    {
+                        buttonField[row, col].Text = adjacentMines[row, col].ToString();
+                    }
+                }
+            }
+        }
+
         private void Button_Click_Left(object sender, EventArgs e)
         {
             Button button = (Button)sender;
@@ -179,58 +281,68 @@ namespace BuscaMinas
             int row = position.Item1;
             int col = position.Item2;
 
-            // Comprobar si es el primer clic
-            if (isFirstClick)
+            //comprobar que no exista una bandera
+            if (!flagsField[row, col])
             {
-                // Generar minas aleatoriamente en el campo minado
-                Random random = new Random();
-                int count = 0;
-                while (count < MINES)
+                // Comprobar si es el primer clic
+                if (isFirstClick)
                 {
-                    int r = random.Next(ROWS);
-                    int c = random.Next(COLS);
-                    //if (!mineField[r, c] && (r != row || c != col)) // No poner mina en el primer clic
-                    if (!mineField[r, c] && !(Math.Abs(row - r) <= 1 && Math.Abs(col - c) <= 1))
+                    // Generar minas aleatoriamente en el campo minado
+                    Random random = new Random();
+                    int count = 0;
+                    while (count < MINES)
                     {
-                        mineField[r, c] = true;
-                        count++;
+                        int r = random.Next(ROWS);
+                        int c = random.Next(COLS);
+                        //if (!mineField[r, c] && (r != row || c != col)) // No poner mina en el primer clic
+                        if (!mineField[r, c] && !(Math.Abs(row - r) <= 1 && Math.Abs(col - c) <= 1))
+                        {
+                            mineField[r, c] = true;
+                            count++;
+                        }
                     }
+
+                    // Calcular el número de minas adyacentes
+                    CalculateAdjacentMines();
+                    isFirstClick = false;
+
+                    // De momento vemos las minas al inicio solo para testear que todo este correcto 
+                    //ShowMines();
+
                 }
-
-                // Calcular el número de minas adyacentes
-                CalculateAdjacentMines();
-                isFirstClick = false;
-
-                // De momento vemos las minas al inicio solo para testear que todo este correcto 
-                //ShowMines();
-
-            }
-            //Comprobar si cae en una mina
-            if (mineField[row, col])
-            {
-                button.Text = "💣";
-                button.ForeColor = Color.Black;
-                button.BackColor = Color.Red;
-                MessageBox.Show("Juego perdido");
-                ShowMines();
-            }
-            else
-            {
-                // Mostrar el número de minas adyacentes
-                int mines = adjacentMines[row, col];
-                button.Text = mines.ToString();
-                button.ForeColor = Color.Black;
-
-                if (mines == 0)
+                //Comprobar si cae en una mina
+                if (mineField[row, col])
                 {
-                    ShowAdjacentEmptyCells(row, col);
+                    button.Text = "💣";
+                    button.ForeColor = Color.Black;
+                    button.BackColor = Color.Red;
+                    MessageBox.Show("Juego perdido");
+                    ShowMines();
+                    WinGame();
+                    blockedGame();
                 }
+                else
+                {
+                    // Mostrar el número de minas adyacentes
+                    int mines = adjacentMines[row, col];
+                    button.Text = mines.ToString();
+                    button.ForeColor = Color.Black;
 
+                    if (mines == 0)
+                    {
+                        ShowAdjacentEmptyCells(row, col);
+                    }
+
+                }
+                if (CheckWin())
+                {
+                    ShowMines();
+                    WinGame();
+                    blockedGame();
+                    MessageBox.Show("Juego ganado");
+                }
             }
-            if (CheckWin())
-            {
-                MessageBox.Show("Juego ganado");
-            }
+           
         }
 
         private void CalculateAdjacentMines()
@@ -239,6 +351,7 @@ namespace BuscaMinas
             {
                 for (int col = 0; col < COLS; col++)
                 {
+                    // Si no hay mina vamos a agregar un numero a la casilla
                     if (!mineField[row, col])
                     {
                         // Reiniciar el contador de minas adyacentes
@@ -295,6 +408,7 @@ namespace BuscaMinas
                 }
             }
         }
+
         private void ShowAdjacentEmptyCells(int row, int col)
         {
             // Verificar si la celda actual es un valor 0
@@ -319,6 +433,7 @@ namespace BuscaMinas
                 buttonField[row, col].Text = adjacentMines[row, col].ToString();
             }
         }
+
         private void Form1_Resize(object sender, EventArgs e)
         {
             ResizeLayout();
