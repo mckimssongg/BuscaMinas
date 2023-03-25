@@ -256,7 +256,7 @@ namespace BuscaMinas
             {
                 for (int col = 0; col < COLS; col++)
                 {
-                    buttonField[row, col].Enabled = true;
+                    buttonField[row, col].Enabled = false;
                 }
             }
         }
@@ -269,6 +269,7 @@ namespace BuscaMinas
                     if (!mineField[row, col])
                     {
                         buttonField[row, col].Text = adjacentMines[row, col].ToString();
+                        buttonField[row, col].ForeColor = Color.Black;
                     }
                 }
             }
@@ -307,7 +308,7 @@ namespace BuscaMinas
                     isFirstClick = false;
 
                     // De momento vemos las minas al inicio solo para testear que todo este correcto 
-                    //ShowMines();
+                    ShowMines();
 
                 }
                 //Comprobar si cae en una mina
@@ -333,13 +334,14 @@ namespace BuscaMinas
                         ShowAdjacentEmptyCells(row, col);
                     }
 
-                }
-                if (CheckWin())
-                {
-                    ShowMines();
-                    WinGame();
-                    blockedGame();
-                    MessageBox.Show("Juego ganado");
+                    if (CheckWin())
+                    {
+                        ShowMines();
+                        WinGame();
+                        blockedGame();
+                        MessageBox.Show("Juego ganado");
+                    }
+
                 }
             }
            
@@ -400,10 +402,17 @@ namespace BuscaMinas
             {
                 for (int col = 0; col < COLS; col++)
                 {
-                    if (mineField[row, col])
+                    if (mineField[row, col] && flagsField[row, col])
+                    {
+                        buttonField[row, col].Text = "🚩💣";
+                        buttonField[row, col].Font = new Font("Arial", 9, FontStyle.Bold);
+                        buttonField[row, col].ForeColor = Color.BlueViolet;
+                    }
+                    else if (mineField[row, col])
                     {
                         buttonField[row, col].Text = "💣";
                         buttonField[row, col].ForeColor = Color.Black;
+
                     }
                 }
             }
