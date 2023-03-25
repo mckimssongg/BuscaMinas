@@ -56,14 +56,45 @@ namespace BuscaMinas
                 int centerXButtonLevels = (this.ClientSize.Width - button_nivel.Width) / 2;
                 int centerYButtonLevels  = level * button_nivel.Height;
                 button_nivel.Location = new Point(centerXButtonLevels, centerYButtonLevels);
+                button_nivel.Click += button_nivel_Click;
                 this.Controls.Add(button_nivel);
+                
 
             }
-
+            
             //InitGameLayoutPanel(0,0,0);
         }
 
-        private void InitGameLayoutPanel(int rows, int cols, int mines)
+        private void button_nivel_Click(object sender, EventArgs e)
+        {
+            Button button = (Button)sender;
+            int nivel = (int) button.Tag;
+
+            switch (nivel)
+            {
+                case 1:
+                    InitGameLayoutPanel
+                        (
+                             10, 10,8
+                        );
+                    break;
+
+                case 2:
+                    InitGameLayoutPanel
+                        (
+                             20, 20, 10
+                        );
+                    break;
+                case 3:
+                    InitGameLayoutPanel
+                         (
+                              25, 25, 15
+                         );
+                    break;
+            }
+        }
+
+            private void InitGameLayoutPanel(int rows, int cols, int mines)
         {
             // Configurar TableLayoutPanel
             tableLayoutPanel1.ColumnCount = COLS;
@@ -101,6 +132,7 @@ namespace BuscaMinas
             //TimeSpan elapsedTime = stopwatch.Elapsed;
             //double seconds = elapsedTime.TotalSeconds;
             //Console.WriteLine("Tiempo transcurrido: " + seconds.ToString() + " segundos");
+            tituloForm.Hide();
         }
 
         private void button_MouseButtons(object sender, EventArgs e)
