@@ -307,8 +307,8 @@ namespace BuscaMinas
                     CalculateAdjacentMines();
                     isFirstClick = false;
 
-                    // De momento vemos las minas al inicio solo para testear que todo este correcto 
-                    ShowMines();
+                    // DEBUG:  De momento vemos las minas al inicio solo para testear que todo este correcto 
+                    //ShowMines();
 
                 }
                 //Comprobar si cae en una mina
